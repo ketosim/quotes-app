@@ -4,9 +4,10 @@ import { store } from '@/app/lib/store';
 // GET single quote by ID
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const quote = await store.getById(params.id);
+  const { id } = await params;
+  const quote = await store.getById(id);
   
   if (!quote) {
     return NextResponse.json(
@@ -21,10 +22,11 @@ export async function GET(
 // PUT update quote
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const body = await request.json();
-  const updatedQuote = await store.update(params.id, body);
+  const updatedQuote = await store.update(id, body);
 
   if (!updatedQuote) {
     return NextResponse.json(
@@ -39,9 +41,10 @@ export async function PUT(
 // DELETE quote
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const success = await store.delete(params.id);
+  const { id } = await params;
+  const success = await store.delete(id);
 
   if (!success) {
     return NextResponse.json(
