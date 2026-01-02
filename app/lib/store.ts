@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import { createClient } from 'redis';
 
 export interface Quote {
   id: string;
@@ -16,24 +16,46 @@ const QUOTES_KEY = 'quotes:all';
 // Helper to get quote key
 const quoteKey = (id: string) => `quote:${id}`;
 
+// Create Redis client
+const redis = createClient({
+  url: process.env.REDIS_URL
+});
+
+redis.on('error', (err) => console.log('Redis Client Error', err));
+
+// Connect to Redis
+let isConnected = false;
+async function ensureConnected() {
+  if (!isConnected) {
+    await redis.connect();
+    isConnected = true;
+  }
+}
+
 export const store = {
   getAll: async (): Promise<Quote[]> => {
-    const quoteIds = await kv.smembers(QUOTES_KEY) as string[];
+    await ensureConnected();
+    const quoteIds = await redis.sMembers(QUOTES_KEY);
     if (quoteIds.length === 0) return [];
     
     const quotes = await Promise.all(
-      quoteIds.map(id => kv.get<Quote>(quoteKey(id)))
+      quoteIds.map(async (id) => {
+        const data = await redis.get(quoteKey(id));
+        return data ? JSON.parse(data) : null;
+      })
     );
     
     return quotes.filter((q): q is Quote => q !== null);
   },
 
   getById: async (id: string): Promise<Quote | undefined> => {
-    const quote = await kv.get<Quote>(quoteKey(id));
-    return quote || undefined;
+    await ensureConnected();
+    const data = await redis.get(quoteKey(id));
+    return data ? JSON.parse(data) : undefined;
   },
 
   create: async (quote: Omit<Quote, 'id' | 'createdAt' | 'lastShown' | 'timesShown'>): Promise<Quote> => {
+    await ensureConnected();
     const newQuote: Quote = {
       ...quote,
       id: Date.now().toString(),
@@ -42,40 +64,45 @@ export const store = {
       createdAt: new Date().toISOString()
     };
     
-    await kv.set(quoteKey(newQuote.id), newQuote);
-    await kv.sadd(QUOTES_KEY, newQuote.id);
+    await redis.set(quoteKey(newQuote.id), JSON.stringify(newQuote));
+    await redis.sAdd(QUOTES_KEY, newQuote.id);
     
     return newQuote;
   },
 
   update: async (id: string, data: Partial<Quote>): Promise<Quote | null> => {
-    const existing = await kv.get<Quote>(quoteKey(id));
-    if (!existing) return null;
+    await ensureConnected();
+    const existingData = await redis.get(quoteKey(id));
+    if (!existingData) return null;
     
+    const existing = JSON.parse(existingData);
     const updated = { ...existing, ...data };
-    await kv.set(quoteKey(id), updated);
+    await redis.set(quoteKey(id), JSON.stringify(updated));
     
     return updated;
   },
 
   delete: async (id: string): Promise<boolean> => {
-    const exists = await kv.exists(quoteKey(id));
+    await ensureConnected();
+    const exists = await redis.exists(quoteKey(id));
     if (!exists) return false;
     
-    await kv.del(quoteKey(id));
-    await kv.srem(QUOTES_KEY, id);
+    await redis.del(quoteKey(id));
+    await redis.sRem(QUOTES_KEY, id);
     
     return true;
   },
 
   markAsViewed: async (id: string): Promise<Quote | null> => {
-    const quote = await kv.get<Quote>(quoteKey(id));
-    if (!quote) return null;
+    await ensureConnected();
+    const data = await redis.get(quoteKey(id));
+    if (!data) return null;
     
+    const quote = JSON.parse(data);
     quote.lastShown = new Date().toISOString();
     quote.timesShown += 1;
     
-    await kv.set(quoteKey(id), quote);
+    await redis.set(quoteKey(id), JSON.stringify(quote));
     
     return quote;
   }
