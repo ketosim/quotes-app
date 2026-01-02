@@ -25,6 +25,9 @@ export default function AdminPage() {
   });
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const [bulkText, setBulkText] = useState('');
+    const [showBulkUpload, setShowBulkUpload] = useState(false);
+
 
   // Fetch all quotes
   const fetchQuotes = async () => {
@@ -110,6 +113,49 @@ export default function AdminPage() {
     setFormData({ title: '', author: '', tag: '', quote: '' });
   };
 
+  // Add to your existing state
+
+// Add this function
+const handleBulkUpload = async () => {
+  try {
+    // Parse CSV or JSON
+    const lines = bulkText.trim().split('\n');
+    const quotes = lines.map(line => {
+      // Support CSV format: "quote","author","title","tag"
+      const parts = line.split('","').map(p => p.replace(/"/g, ''));
+      
+      if (parts.length >= 2) {
+        return {
+          quote: parts[0],
+          author: parts[1],
+          title: parts[2] || '',
+          tag: parts[3] || ''
+        };
+      }
+      return null;
+    }).filter(q => q !== null);
+
+    const response = await fetch('/api/quotes/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ quotes })
+    });
+
+    const result = await response.json();
+    
+    alert(`Success! Added ${result.created} quotes. ${result.errors} errors.`);
+    
+    if (result.created > 0) {
+      await fetchQuotes();
+      setBulkText('');
+      setShowBulkUpload(false);
+    }
+  } catch (error) {
+    console.error('Bulk upload error:', error);
+    alert('Failed to upload quotes');
+  }
+};
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
@@ -117,8 +163,10 @@ export default function AdminPage() {
       </div>
     );
   }
+  
 
   return (
+    
     <div className="min-h-screen bg-gray-900 text-white p-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
@@ -130,6 +178,12 @@ export default function AdminPage() {
             >
               Logout
             </button>
+             <button
+                onClick={() => setShowBulkUpload(true)}
+                className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded"
+                >
+                Bulk Upload
+                </button>
             <button
               onClick={() => setIsAdding(true)}
               className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
@@ -208,6 +262,41 @@ export default function AdminPage() {
               </div>
             </form>
           </div>
+        )}
+        {/* Bulk Upload Form */}
+        {showBulkUpload && (
+        <div className="bg-gray-800 p-6 rounded-lg mb-8">
+            <h2 className="text-xl mb-4">Bulk Upload Quotes</h2>
+            <p className="text-sm text-gray-400 mb-4">
+            Paste quotes in CSV format (one per line):<br/>
+            Format: "quote","author","title","tag"<br/>
+            Example: "To be or not to be","Shakespeare","Hamlet","philosophy"
+            </p>
+            <textarea
+            value={bulkText}
+            onChange={(e) => setBulkText(e.target.value)}
+            className="w-full bg-gray-700 px-3 py-2 rounded h-64 text-white font-mono text-sm"
+            placeholder='"Quote text","Author","Title","Tag"
+        "Another quote","Another Author","Title","Tag"'
+            />
+            <div className="flex gap-3 mt-4">
+            <button
+                onClick={handleBulkUpload}
+                className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded"
+            >
+                Upload Quotes
+            </button>
+            <button
+                onClick={() => {
+                setShowBulkUpload(false);
+                setBulkText('');
+                }}
+                className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded"
+            >
+                Cancel
+            </button>
+            </div>
+        </div>
         )}
 
         {/* Quotes List */}
