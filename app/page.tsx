@@ -13,6 +13,13 @@ interface Quote {
 export default function Home() {
   const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    author: '',
+    tag: '',
+    quote: ''
+  });
 
   const fetchNextQuote = async () => {
     setLoading(true);
@@ -20,6 +27,7 @@ export default function Home() {
       const response = await fetch('/api/quotes/next');
       const data = await response.json();
       setCurrentQuote(data);
+      setIsEditing(false);
     } catch (error) {
       console.error('Error fetching quote:', error);
     } finally {
@@ -32,13 +40,73 @@ export default function Home() {
   }, []);
 
   const handleTap = () => {
-    fetchNextQuote();
+    if (!isEditing) {
+      fetchNextQuote();
+    }
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!currentQuote) return;
+    
+    setEditForm({
+      title: currentQuote.title || '',
+      author: currentQuote.author,
+      tag: currentQuote.tag || '',
+      quote: currentQuote.quote
+    });
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!currentQuote) return;
+
+    try {
+      await fetch(`/api/quotes/${currentQuote.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm)
+      });
+      
+      setCurrentQuote({
+        ...currentQuote,
+        ...editForm
+      });
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating quote:', error);
+      alert('Failed to update quote');
+    }
+  };
+
+  const handleCancelEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsEditing(false);
+  };
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!currentQuote) return;
+    
+    if (confirm('Delete this quote?')) {
+      try {
+        await fetch(`/api/quotes/${currentQuote.id}`, {
+          method: 'DELETE'
+        });
+        fetchNextQuote();
+      } catch (error) {
+        console.error('Error deleting quote:', error);
+        alert('Failed to delete quote');
+      }
+    }
   };
 
   if (loading && !currentQuote) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex items-center justify-center">
-        <p className="text-xl font-light">Gethering thoughts...</p>
+        <p className="text-xl font-light">Gathering thoughts...</p>
       </div>
     );
   }
@@ -57,39 +125,124 @@ export default function Home() {
   }
 
   return (
-    <div 
-      className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex items-center justify-center p-6 cursor-pointer select-none"
-      onClick={handleTap}
-    >
-      <div className="max-w-3xl w-full space-y-8">
-        {/* Title */}
-        {currentQuote.title && (
-          <h2 className="text-lg md:text-xl text-gray-400 text-center font-light tracking-wide">
-            {currentQuote.title}
-          </h2>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex flex-col">
+      {/* Action buttons - fixed at top, iPhone optimized */}
+      <div className="fixed top-0 left-0 right-0 z-10 flex justify-end gap-2 p-4 bg-gradient-to-b from-gray-900/80 to-transparent backdrop-blur-sm">
+        {!isEditing ? (
+          <>
+            <button
+              onClick={handleEdit}
+              className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-5 py-3 rounded-lg text-base font-medium shadow-lg transition-all touch-manipulation"
+            >
+              Edit
+            </button>
+            <button
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-5 py-3 rounded-lg text-base font-medium shadow-lg transition-all touch-manipulation"
+            >
+              Delete
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={handleSaveEdit}
+              className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white px-5 py-3 rounded-lg text-base font-medium shadow-lg transition-all touch-manipulation"
+            >
+              Save
+            </button>
+            <button
+              onClick={handleCancelEdit}
+              className="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white px-5 py-3 rounded-lg text-base font-medium shadow-lg transition-all touch-manipulation"
+            >
+              Cancel
+            </button>
+          </>
         )}
-        
-       {/* Quote */}
-        <blockquote className="font-playfair text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-relaxed text-center">
-          {currentQuote.quote}
-        </blockquote>
+      </div>
 
-        {/* Author */}
-        <p className="text-xl md:text-2xl text-gray-300 text-center font-light">
-          — {currentQuote.author}
-        </p>
-        
-        {/* Tag */}
-        {currentQuote.tag && (
-          <p className="text-sm text-gray-500 text-center tracking-wider uppercase">
-            {currentQuote.tag}
-          </p>
+      {/* Main content */}
+      <div 
+        className="flex-1 flex items-center justify-center p-6 pt-24 select-none"
+        onClick={handleTap}
+        style={{ cursor: isEditing ? 'default' : 'pointer' }}
+      >
+        {!isEditing ? (
+          // Display mode
+          <div className="max-w-3xl w-full space-y-8">
+            {currentQuote.title && (
+              <h2 className="text-lg md:text-xl text-gray-400 text-center font-light tracking-wide">
+                {currentQuote.title}
+              </h2>
+            )}
+            
+            <blockquote className="font-playfair text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-relaxed text-center">
+              {currentQuote.quote}
+            </blockquote>
+
+            <p className="text-xl md:text-2xl text-gray-300 text-center font-light">
+              — {currentQuote.author}
+            </p>
+            
+            {currentQuote.tag && (
+              <p className="text-sm text-gray-500 text-center tracking-wider uppercase">
+                {currentQuote.tag}
+              </p>
+            )}
+            
+            <p className="text-sm text-gray-600 text-center mt-12 font-light animate-pulse">
+              Tap anywhere for next quote
+            </p>
+          </div>
+        ) : (
+          // Edit mode
+          <div className="max-w-2xl w-full space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Title (optional)</label>
+              <input
+                type="text"
+                value={editForm.title}
+                onChange={(e) => setEditForm({...editForm, title: e.target.value})}
+                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none text-base"
+                placeholder="Quote title"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Author *</label>
+              <input
+                type="text"
+                value={editForm.author}
+                onChange={(e) => setEditForm({...editForm, author: e.target.value})}
+                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none text-base"
+                placeholder="Author name"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Tag (optional)</label>
+              <input
+                type="text"
+                value={editForm.tag}
+                onChange={(e) => setEditForm({...editForm, tag: e.target.value})}
+                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none text-base"
+                placeholder="e.g., motivation, wisdom"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Quote *</label>
+              <textarea
+                value={editForm.quote}
+                onChange={(e) => setEditForm({...editForm, quote: e.target.value})}
+                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none text-base min-h-[200px]"
+                placeholder="Quote text"
+                required
+              />
+            </div>
+          </div>
         )}
-        
-        {/* Tap instruction */}
-        <p className="text-sm text-gray-600 text-center mt-12 font-light animate-pulse">
-          Tap anywhere for next quote
-        </p>
       </div>
     </div>
   );
