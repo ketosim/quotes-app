@@ -58,7 +58,7 @@ export default function Home() {
     >
       <div className="max-w-2xl w-full space-y-6 text-center">
         <p className="text-3xl md:text-4xl leading-relaxed">
-          "{currentQuote.quote}"
+          {currentQuote.quote}
         </p>
         <p className="text-xl text-gray-400">
           — {currentQuote.author}

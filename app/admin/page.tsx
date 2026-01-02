@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface Quote {
   id: string;
@@ -23,6 +24,7 @@ export default function AdminPage() {
     quote: ''
   });
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   // Fetch all quotes
   const fetchQuotes = async () => {
@@ -40,6 +42,11 @@ export default function AdminPage() {
   useEffect(() => {
     fetchQuotes();
   }, []);
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/login');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,12 +123,20 @@ export default function AdminPage() {
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Manage Quotes</h1>
-          <button
-            onClick={() => setIsAdding(true)}
-            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
-          >
-            Add New Quote
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={handleLogout}
+              className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
+            >
+              Logout
+            </button>
+            <button
+              onClick={() => setIsAdding(true)}
+              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
+            >
+              Add New Quote
+            </button>
+          </div>
         </div>
 
         {/* Add/Edit Form */}
@@ -205,7 +220,7 @@ export default function AdminPage() {
                   {quote.title && (
                     <h3 className="text-lg font-semibold mb-1">{quote.title}</h3>
                   )}
-                  <p className="text-gray-300 mb-2">"{quote.quote}"</p>
+                  <p className="text-gray-300 mb-2">{quote.quote}</p>
                   <p className="text-sm text-gray-400">— {quote.author}</p>
                   {quote.tag && (
                     <p className="text-xs text-gray-500 mt-1">#{quote.tag}</p>
