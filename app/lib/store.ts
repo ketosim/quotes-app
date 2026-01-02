@@ -1,5 +1,4 @@
-// Simple in-memory store for development
-// We'll replace this with Vercel KV later
+import { kv } from '@vercel/kv';
 
 export interface Quote {
   id: string;
@@ -12,46 +11,26 @@ export interface Quote {
   createdAt: string;
 }
 
-let quotes: Quote[] = [
-  {
-    id: '1',
-    title: 'On Passion',
-    author: 'Steve Jobs',
-    tag: 'motivation',
-    quote: 'The only way to do great work is to love what you do.',
-    lastShown: '2024-01-01',
-    timesShown: 0,
-    createdAt: '2025-01-01'
-  },
-  {
-    id: '2',
-    title: 'On Challenges',
-    author: 'Albert Einstein',
-    tag: 'wisdom',
-    quote: 'In the middle of difficulty lies opportunity.',
-    lastShown: '2024-01-01',
-    timesShown: 0,
-    createdAt: '2025-01-01'
-  },
-  {
-    id: '3',
-    title: 'On Life',
-    author: 'John Lennon',
-    tag: 'philosophy',
-    quote: "Life is what happens when you're busy making other plans.",
-    lastShown: '2024-01-01',
-    timesShown: 0,
-    createdAt: '2025-01-01'
-  }
-];
+const QUOTES_KEY = 'quotes:all';
+
+// Helper to get quote key
+const quoteKey = (id: string) => `quote:${id}`;
 
 export const store = {
   getAll: async (): Promise<Quote[]> => {
-    return quotes;
+    const quoteIds = await kv.smembers(QUOTES_KEY) as string[];
+    if (quoteIds.length === 0) return [];
+    
+    const quotes = await Promise.all(
+      quoteIds.map(id => kv.get<Quote>(quoteKey(id)))
+    );
+    
+    return quotes.filter((q): q is Quote => q !== null);
   },
 
   getById: async (id: string): Promise<Quote | undefined> => {
-    return quotes.find(q => q.id === id);
+    const quote = await kv.get<Quote>(quoteKey(id));
+    return quote || undefined;
   },
 
   create: async (quote: Omit<Quote, 'id' | 'createdAt' | 'lastShown' | 'timesShown'>): Promise<Quote> => {
@@ -62,28 +41,42 @@ export const store = {
       timesShown: 0,
       createdAt: new Date().toISOString()
     };
-    quotes.push(newQuote);
+    
+    await kv.set(quoteKey(newQuote.id), newQuote);
+    await kv.sadd(QUOTES_KEY, newQuote.id);
+    
     return newQuote;
   },
 
   update: async (id: string, data: Partial<Quote>): Promise<Quote | null> => {
-    const index = quotes.findIndex(q => q.id === id);
-    if (index === -1) return null;
-    quotes[index] = { ...quotes[index], ...data };
-    return quotes[index];
+    const existing = await kv.get<Quote>(quoteKey(id));
+    if (!existing) return null;
+    
+    const updated = { ...existing, ...data };
+    await kv.set(quoteKey(id), updated);
+    
+    return updated;
   },
 
   delete: async (id: string): Promise<boolean> => {
-    const initialLength = quotes.length;
-    quotes = quotes.filter(q => q.id !== id);
-    return quotes.length < initialLength;
+    const exists = await kv.exists(quoteKey(id));
+    if (!exists) return false;
+    
+    await kv.del(quoteKey(id));
+    await kv.srem(QUOTES_KEY, id);
+    
+    return true;
   },
 
   markAsViewed: async (id: string): Promise<Quote | null> => {
-    const quote = quotes.find(q => q.id === id);
+    const quote = await kv.get<Quote>(quoteKey(id));
     if (!quote) return null;
+    
     quote.lastShown = new Date().toISOString();
     quote.timesShown += 1;
+    
+    await kv.set(quoteKey(id), quote);
+    
     return quote;
   }
 };
