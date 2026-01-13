@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 
 interface Quote {
   id: string;
@@ -12,7 +13,6 @@ interface Quote {
 
 export default function ManagePage() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
-  const [filteredQuotes, setFilteredQuotes] = useState<Quote[]>([]);
   const [authors, setAuthors] = useState<string[]>([]);
   const [books, setBooks] = useState<string[]>([]);
   
@@ -27,37 +27,35 @@ export default function ManagePage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, authors: 0, books: 0 });
 
+  // Load quotes on mount only
   useEffect(() => {
+    const loadQuotes = async () => {
+      setLoading(true);
+      const res = await fetch('/api/quotes/all');
+      const data = await res.json();
+      setQuotes(data);
+      
+      // Extract unique authors and books with proper typing
+      const uniqueAuthors = [...new Set(data.map((q: Quote) => q.author))].sort() as string[];
+      const uniqueBooks = [...new Set(data.map((q: Quote) => q.title))].sort() as string[];
+      
+      setAuthors(uniqueAuthors);
+      setBooks(uniqueBooks);
+      
+      setStats({
+        total: data.length,
+        authors: uniqueAuthors.length,
+        books: uniqueBooks.length
+      });
+      
+      setLoading(false);
+    };
+
     loadQuotes();
-  }, []);
+  }, []); // Empty dependency array - only run on mount
 
-  useEffect(() => {
-    applyFilters();
-  }, [quotes, selectedAuthor, selectedBook, searchText]);
-
-  const loadQuotes = async () => {
-    setLoading(true);
-    const res = await fetch('/api/quotes/all');
-    const data = await res.json();
-    setQuotes(data);
-    
-    // Extract unique authors and books
-    const uniqueAuthors = [...new Set(data.map((q: Quote) => q.author))].sort();
-    const uniqueBooks = [...new Set(data.map((q: Quote) => q.title))].sort();
-    
-    setAuthors(uniqueAuthors);
-    setBooks(uniqueBooks);
-    
-    setStats({
-      total: data.length,
-      authors: uniqueAuthors.length,
-      books: uniqueBooks.length
-    });
-    
-    setLoading(false);
-  };
-
-  const applyFilters = () => {
+  // Use useMemo to compute filtered quotes instead of useEffect
+  const filteredQuotes = useMemo(() => {
     let filtered = quotes;
     
     if (selectedAuthor) {
@@ -77,7 +75,29 @@ export default function ManagePage() {
       );
     }
     
-    setFilteredQuotes(filtered);
+    return filtered;
+  }, [quotes, selectedAuthor, selectedBook, searchText]);
+
+  const reloadQuotes = async () => {
+    setLoading(true);
+    const res = await fetch('/api/quotes/all');
+    const data = await res.json();
+    setQuotes(data);
+    
+    // Extract unique authors and books with proper typing
+    const uniqueAuthors = [...new Set(data.map((q: Quote) => q.author))].sort() as string[];
+    const uniqueBooks = [...new Set(data.map((q: Quote) => q.title))].sort() as string[];
+    
+    setAuthors(uniqueAuthors);
+    setBooks(uniqueBooks);
+    
+    setStats({
+      total: data.length,
+      authors: uniqueAuthors.length,
+      books: uniqueBooks.length
+    });
+    
+    setLoading(false);
   };
 
   const clearFilters = () => {
@@ -115,7 +135,7 @@ export default function ManagePage() {
     }
     
     setSelectedQuotes(new Set());
-    loadQuotes();
+    reloadQuotes();
   };
 
   const exportFiltered = () => {
@@ -146,9 +166,9 @@ export default function ManagePage() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Quote Management</h1>
           <div className="space-x-4">
-            <a href="/" className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+            <Link href="/" className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 inline-block">
               Back to App
-            </a>
+            </Link>
           </div>
         </div>
 
