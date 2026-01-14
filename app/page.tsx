@@ -173,7 +173,7 @@ export default function Home() {
             
             <blockquote 
               style={{ 
-                fontSize: 'clamp(1.875rem, 4vw, 3rem)',
+                fontSize: 'clamp(1.25rem, 3vw, 2rem)',
                 lineHeight: '1.6',
                 textAlign: 'center',
                 color: 'white',
@@ -379,7 +379,7 @@ export default function Home() {
               onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
               onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
             >
-              ✎ Edit
+              Edit
             </button>
             <button
               onClick={handleDelete}
@@ -406,7 +406,7 @@ export default function Home() {
                 e.currentTarget.style.color = '#f87171';
               }}
             >
-              × Delete
+              Delete
             </button>
           </>
         ) : (
