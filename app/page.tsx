@@ -126,167 +126,334 @@ export default function Home() {
 
   return (
     <div 
-      className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex flex-col"
       style={{
-        WebkitFontSmoothing: 'antialiased',
-        MozOsxFontSmoothing: 'grayscale',
-        minHeight: '-webkit-fill-available'
+        minHeight: '100vh',
+        background: 'linear-gradient(to bottom right, rgb(17, 24, 39), rgb(31, 41, 55), rgb(17, 24, 39))',
+        color: 'white',
+        display: 'flex',
+        flexDirection: 'column',
+        WebkitFontSmoothing: 'antialiased'        
       }}
     >
-      {/* iOS Safe Area padding */}
-      <div 
-        className="fixed top-0 right-0 z-10 flex gap-3 p-4"
-        style={{ 
-          paddingTop: 'max(1rem, env(safe-area-inset-top))',
-          paddingRight: 'max(1rem, env(safe-area-inset-right))'
-        }}
-      >
-        {!isEditing ? (
-          <>
-            <button
-              onClick={handleEdit}
-              className="bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-white px-5 py-2.5 rounded-full text-base font-medium shadow-lg border border-gray-700 transition-colors"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              Edit
-            </button>
-            <button
-              onClick={handleDelete}
-              className="bg-gray-800 hover:bg-red-900 active:bg-red-800 text-red-400 hover:text-red-300 px-5 py-2.5 rounded-full text-base font-medium shadow-lg border border-gray-700 transition-colors"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              Delete
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              onClick={handleSaveEdit}
-              className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white px-6 py-2.5 rounded-full text-base font-medium shadow-lg transition-colors"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              Save
-            </button>
-            <button
-              onClick={handleCancelEdit}
-              className="bg-gray-700 hover:bg-gray-600 active:bg-gray-800 text-white px-6 py-2.5 rounded-full text-base font-medium shadow-lg transition-colors"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              Cancel
-            </button>
-          </>
-        )}
-      </div>
-
       {/* Main content */}
       <div 
-        className="flex-1 flex items-center justify-center px-6 py-8"
         onClick={handleTap}
         style={{ 
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingLeft: '1.5rem',
+          paddingRight: '1.5rem',
+          paddingTop: 'max(4rem, calc(env(safe-area-inset-top) + 2rem))',
+          paddingBottom: 'max(6rem, calc(env(safe-area-inset-bottom) + 5rem))',
           cursor: isEditing ? 'default' : 'pointer',
           WebkitUserSelect: 'none',
-          WebkitTouchCallout: 'none',
-          paddingTop: 'max(6rem, calc(env(safe-area-inset-top) + 4rem))',
-          paddingBottom: 'max(2rem, env(safe-area-inset-bottom))',
-          paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
-          paddingRight: 'max(1.5rem, env(safe-area-inset-right))'
+          WebkitTouchCallout: 'none'
         }}
       >
         {!isEditing ? (
           // Display mode
-          <div className="max-w-3xl w-full space-y-6">
+          <div style={{ maxWidth: '48rem', width: '100%' }}>
             {currentQuote.title && (
               <h2 
-                className="text-sm text-gray-400 text-right font-lora tracking-wide"
-                style={{ WebkitFontSmoothing: 'antialiased' }}
+                style={{ 
+                  fontSize: '0.875rem',
+                  color: 'rgb(156, 163, 175)',
+                  textAlign: 'center',
+                  fontFamily: 'var(--font-lora)',
+                  letterSpacing: '0.025em',
+                  marginBottom: '1.5rem',
+                  WebkitFontSmoothing: 'antialiased'
+                }}
               >
                 {currentQuote.title}
               </h2>
             )}
             
             <blockquote 
-              className="text-3xl sm:text-4xl md:text-5xl leading-relaxed text-center text-white"
               style={{ 
+                fontSize: 'clamp(1.875rem, 4vw, 3rem)',
+                lineHeight: '1.6',
+                textAlign: 'center',
+                color: 'white',
                 fontFamily: 'Georgia, serif',
                 WebkitFontSmoothing: 'antialiased',
-                textRendering: 'optimizeLegibility'
+                textRendering: 'optimizeLegibility',
+                marginBottom: '1.5rem'
               }}
             >
               {currentQuote.quote}
             </blockquote>
 
             <p 
-              className="text-xl text-gray-300 text-center font-lora"
-              style={{ WebkitFontSmoothing: 'antialiased' }}
+              style={{ 
+                fontSize: '1.25rem',
+                color: 'rgb(209, 213, 219)',
+                textAlign: 'center',
+                fontFamily: 'var(--font-lora)',
+                WebkitFontSmoothing: 'antialiased',
+                marginBottom: '1.5rem'
+              }}
             >
               — {currentQuote.author}
             </p>
             
             {currentQuote.tag && (
-              <p className="text-sm text-gray-500 text-center tracking-wider uppercase font-lora">
+              <p style={{ 
+                fontSize: '0.875rem',
+                color: 'rgb(107, 114, 128)',
+                textAlign: 'center',
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+                fontFamily: 'var(--font-lora)'
+              }}>
                 {currentQuote.tag}
               </p>
             )}
-            
-            <p className="text-sm text-gray-600 text-center mt-8 font-lora">
-              Tap anywhere for next quote
-            </p>
           </div>
         ) : (
-          // Edit mode - iOS optimized
+          // Edit mode
           <div 
-            className="max-w-2xl w-full space-y-5" 
             onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '42rem', width: '100%' }}
           >
-            <div>
-              <label className="block text-sm text-gray-400 mb-2 font-sans">Title (optional)</label>
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label style={{ 
+                display: 'block',
+                fontSize: '0.875rem',
+                color: 'rgb(156, 163, 175)',
+                marginBottom: '0.5rem',
+                fontFamily: 'var(--font-inter)'
+              }}>
+                Title (optional)
+              </label>
               <input
                 type="text"
                 value={editForm.title}
                 onChange={(e) => setEditForm({...editForm, title: e.target.value})}
-                className="w-full bg-gray-800 text-white px-4 py-4 rounded-xl border border-gray-700 focus:border-blue-500 focus:outline-none text-base font-sans"
                 placeholder="Quote title"
-                style={{ fontSize: '16px' }} // Prevents iOS zoom
+                style={{ 
+                  width: '100%',
+                  background: 'rgb(31, 41, 55)',
+                  color: 'white',
+                  padding: '1rem',
+                  borderRadius: '0.75rem',
+                  border: '1px solid rgb(55, 65, 81)',
+                  outline: 'none',
+                  fontSize: '16px',
+                  fontFamily: 'var(--font-inter)'
+                }}
               />
             </div>
 
-            <div>
-              <label className="block text-sm text-gray-400 mb-2 font-sans">Author *</label>
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label style={{ 
+                display: 'block',
+                fontSize: '0.875rem',
+                color: 'rgb(156, 163, 175)',
+                marginBottom: '0.5rem',
+                fontFamily: 'var(--font-inter)'
+              }}>
+                Author *
+              </label>
               <input
                 type="text"
                 value={editForm.author}
                 onChange={(e) => setEditForm({...editForm, author: e.target.value})}
-                className="w-full bg-gray-800 text-white px-4 py-4 rounded-xl border border-gray-700 focus:border-blue-500 focus:outline-none text-base font-sans"
                 placeholder="Author name"
                 required
-                style={{ fontSize: '16px' }} // Prevents iOS zoom
+                style={{ 
+                  width: '100%',
+                  background: 'rgb(31, 41, 55)',
+                  color: 'white',
+                  padding: '1rem',
+                  borderRadius: '0.75rem',
+                  border: '1px solid rgb(55, 65, 81)',
+                  outline: 'none',
+                  fontSize: '16px',
+                  fontFamily: 'var(--font-inter)'
+                }}
               />
             </div>
 
-            <div>
-              <label className="block text-sm text-gray-400 mb-2 font-sans">Tag (optional)</label>
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label style={{ 
+                display: 'block',
+                fontSize: '0.875rem',
+                color: 'rgb(156, 163, 175)',
+                marginBottom: '0.5rem',
+                fontFamily: 'var(--font-inter)'
+              }}>
+                Tag (optional)
+              </label>
               <input
                 type="text"
                 value={editForm.tag}
                 onChange={(e) => setEditForm({...editForm, tag: e.target.value})}
-                className="w-full bg-gray-800 text-white px-4 py-4 rounded-xl border border-gray-700 focus:border-blue-500 focus:outline-none text-base font-sans"
                 placeholder="e.g., motivation, wisdom"
-                style={{ fontSize: '16px' }} // Prevents iOS zoom
+                style={{ 
+                  width: '100%',
+                  background: 'rgb(31, 41, 55)',
+                  color: 'white',
+                  padding: '1rem',
+                  borderRadius: '0.75rem',
+                  border: '1px solid rgb(55, 65, 81)',
+                  outline: 'none',
+                  fontSize: '16px',
+                  fontFamily: 'var(--font-inter)'
+                }}
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-2 font-sans">Quote *</label>
+              <label style={{ 
+                display: 'block',
+                fontSize: '0.875rem',
+                color: 'rgb(156, 163, 175)',
+                marginBottom: '0.5rem',
+                fontFamily: 'var(--font-inter)'
+              }}>
+                Quote *
+              </label>
               <textarea
                 value={editForm.quote}
                 onChange={(e) => setEditForm({...editForm, quote: e.target.value})}
-                className="w-full bg-gray-800 text-white px-4 py-4 rounded-xl border border-gray-700 focus:border-blue-500 focus:outline-none text-base min-h-[200px] font-sans resize-none"
                 placeholder="Quote text"
                 required
-                style={{ fontSize: '16px' }} // Prevents iOS zoom
+                style={{ 
+                  width: '100%',
+                  background: 'rgb(31, 41, 55)',
+                  color: 'white',
+                  padding: '1rem',
+                  borderRadius: '0.75rem',
+                  border: '1px solid rgb(55, 65, 81)',
+                  outline: 'none',
+                  fontSize: '16px',
+                  minHeight: '200px',
+                  resize: 'none',
+                  fontFamily: 'var(--font-inter)'
+                }}
               />
             </div>
           </div>
+        )}
+      </div>
+
+      {/* Buttons at bottom center - with inline styles */}
+      <div 
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 10,
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '0.5rem',
+          padding: '1rem',
+          paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
+          background: 'linear-gradient(to top, rgba(17, 24, 39, 0.8), rgba(17, 24, 39, 0.6), transparent)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)'
+        }}
+      >
+        {!isEditing ? (
+          <>
+            <button
+              onClick={handleEdit}
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                color: 'white',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '9999px',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                WebkitTapHighlightColor: 'transparent',
+                fontFamily: 'var(--font-inter)'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+            >
+              ✎ Edit
+            </button>
+            <button
+              onClick={handleDelete}
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                color: '#f87171',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '9999px',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                WebkitTapHighlightColor: 'transparent',
+                fontFamily: 'var(--font-inter)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                e.currentTarget.style.color = '#fca5a5';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                e.currentTarget.style.color = '#f87171';
+              }}
+            >
+              × Delete
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={handleSaveEdit}
+              style={{
+                background: '#10b981',
+                color: 'white',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '9999px',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                border: 'none',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                WebkitTapHighlightColor: 'transparent',
+                fontFamily: 'var(--font-inter)'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#059669'}
+              onMouseLeave={(e) => e.currentTarget.style.background = '#10b981'}
+            >
+              ✓ Save
+            </button>
+            <button
+              onClick={handleCancelEdit}
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                color: 'white',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '9999px',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                WebkitTapHighlightColor: 'transparent',
+                fontFamily: 'var(--font-inter)'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+            >
+              Cancel
+            </button>
+          </>
         )}
       </div>
     </div>
