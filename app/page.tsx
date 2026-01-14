@@ -105,8 +105,17 @@ export default function Home() {
 
   if (loading && !currentQuote) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex items-center justify-center">
-        <p className="text-xl font-light">Gathering thoughts...</p>
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(to bottom right, rgb(17, 24, 39), rgb(31, 41, 55), rgb(17, 24, 39))',
+        color: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <p style={{ fontSize: '1.25rem', fontFamily: 'Georgia, serif', fontWeight: '300' }}>
+          Gathering thoughts...
+        </p>
       </div>
     );
   }
@@ -143,8 +152,8 @@ export default function Home() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          paddingLeft: '1.5rem',
-          paddingRight: '1.5rem',
+ paddingLeft: '0.1rem',
+paddingRight: '0.1rem',
           paddingTop: 'max(4rem, calc(env(safe-area-inset-top) + 2rem))',
           paddingBottom: 'max(6rem, calc(env(safe-area-inset-bottom) + 5rem))',
           cursor: isEditing ? 'default' : 'pointer',
@@ -154,7 +163,7 @@ export default function Home() {
       >
         {!isEditing ? (
           // Display mode
-          <div style={{ maxWidth: '48rem', width: '100%' }}>
+          <div style={{ maxWidth: '46rem', width: '100%', paddingLeft: '1rem', paddingRight: '1rem' }}>
             {currentQuote.title && (
               <h2 
                 style={{ 
