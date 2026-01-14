@@ -197,10 +197,11 @@ paddingRight: '0.1rem',
 
             <p 
               style={{ 
-                fontSize: '1.25rem',
-                color: 'rgb(209, 213, 219)',
+                fontSize: '0.875rem',
+                color: 'rgb(156, 163, 175)',
                 textAlign: 'center',
                 fontFamily: 'var(--font-lora)',
+                letterSpacing: '0.025em',
                 WebkitFontSmoothing: 'antialiased',
                 marginBottom: '1.5rem'
               }}
