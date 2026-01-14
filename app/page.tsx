@@ -177,7 +177,7 @@ export default function Home() {
             )}
             
             <blockquote 
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-relaxed text-center text-gray-150"
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-relaxed text-center text-gray-190"
               style={{ fontFamily: 'Georgia, serif' }}
             >
                 {currentQuote.quote}
