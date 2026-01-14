@@ -171,7 +171,7 @@ export default function Home() {
           // Display mode
           <div className="max-w-3xl w-full space-y-8">
             {currentQuote.title && (
-              <h2 className="text-lg md:text-xl text-gray-400 text-center font-lora tracking-wide">
+              <h2 className="text-lg md:text-xl text-gray-200 text-center font-lora tracking-wide">
                 {currentQuote.title}
               </h2>
             )}
