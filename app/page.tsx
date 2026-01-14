@@ -125,20 +125,35 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex flex-col">
-      {/* Action buttons - fixed at top right corner */}
-      <div className="fixed top-4 right-4 z-10 flex gap-2">
+    <div 
+      className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex flex-col"
+      style={{
+        WebkitFontSmoothing: 'antialiased',
+        MozOsxFontSmoothing: 'grayscale',
+        minHeight: '-webkit-fill-available'
+      }}
+    >
+      {/* iOS Safe Area padding */}
+      <div 
+        className="fixed top-0 right-0 z-10 flex gap-3 p-4"
+        style={{ 
+          paddingTop: 'max(1rem, env(safe-area-inset-top))',
+          paddingRight: 'max(1rem, env(safe-area-inset-right))'
+        }}
+      >
         {!isEditing ? (
           <>
             <button
               onClick={handleEdit}
-              className="bg-gray-800/90 hover:bg-gray-700 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg border border-gray-700 transition-all touch-manipulation"
+              className="bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-white px-5 py-2.5 rounded-full text-base font-medium shadow-lg border border-gray-700 transition-colors"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               Edit
             </button>
             <button
               onClick={handleDelete}
-              className="bg-gray-800/90 hover:bg-red-900/80 backdrop-blur-sm text-red-400 hover:text-red-300 px-4 py-2 rounded-full text-sm font-medium shadow-lg border border-gray-700 transition-all touch-manipulation"
+              className="bg-gray-800 hover:bg-red-900 active:bg-red-800 text-red-400 hover:text-red-300 px-5 py-2.5 rounded-full text-base font-medium shadow-lg border border-gray-700 transition-colors"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               Delete
             </button>
@@ -147,13 +162,15 @@ export default function Home() {
           <>
             <button
               onClick={handleSaveEdit}
-              className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-full text-sm font-medium shadow-lg transition-all touch-manipulation"
+              className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white px-6 py-2.5 rounded-full text-base font-medium shadow-lg transition-colors"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               Save
             </button>
             <button
               onClick={handleCancelEdit}
-              className="bg-gray-700 hover:bg-gray-600 text-white px-5 py-2 rounded-full text-sm font-medium shadow-lg transition-all touch-manipulation"
+              className="bg-gray-700 hover:bg-gray-600 active:bg-gray-800 text-white px-6 py-2.5 rounded-full text-base font-medium shadow-lg transition-colors"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               Cancel
             </button>
@@ -163,27 +180,45 @@ export default function Home() {
 
       {/* Main content */}
       <div 
-        className="flex-1 flex items-center justify-center p-6 pt-24 select-none"
+        className="flex-1 flex items-center justify-center px-6 py-8"
         onClick={handleTap}
-        style={{ cursor: isEditing ? 'default' : 'pointer' }}
+        style={{ 
+          cursor: isEditing ? 'default' : 'pointer',
+          WebkitUserSelect: 'none',
+          WebkitTouchCallout: 'none',
+          paddingTop: 'max(6rem, calc(env(safe-area-inset-top) + 4rem))',
+          paddingBottom: 'max(2rem, env(safe-area-inset-bottom))',
+          paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
+          paddingRight: 'max(1.5rem, env(safe-area-inset-right))'
+        }}
       >
         {!isEditing ? (
           // Display mode
-          <div className="max-w-3xl w-full space-y-8">
+          <div className="max-w-3xl w-full space-y-6">
             {currentQuote.title && (
-              <h2 className="text-lg md:text-xl text-gray-200 text-center font-lora tracking-wide">
+              <h2 
+                className="text-sm text-gray-400 text-right font-lora tracking-wide"
+                style={{ WebkitFontSmoothing: 'antialiased' }}
+              >
                 {currentQuote.title}
               </h2>
             )}
             
             <blockquote 
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-relaxed text-center text-gray-190"
-              style={{ fontFamily: 'Georgia, serif' }}
+              className="text-3xl sm:text-4xl md:text-5xl leading-relaxed text-center text-white"
+              style={{ 
+                fontFamily: 'Georgia, serif',
+                WebkitFontSmoothing: 'antialiased',
+                textRendering: 'optimizeLegibility'
+              }}
             >
-                {currentQuote.quote}
+              {currentQuote.quote}
             </blockquote>
 
-            <p className="text-xl md:text-2xl text-gray-300 text-center font-lora">
+            <p 
+              className="text-xl text-gray-300 text-center font-lora"
+              style={{ WebkitFontSmoothing: 'antialiased' }}
+            >
               — {currentQuote.author}
             </p>
             
@@ -193,55 +228,62 @@ export default function Home() {
               </p>
             )}
             
-            <p className="text-sm text-gray-600 text-center mt-12 font-lora animate-pulse">
+            <p className="text-sm text-gray-600 text-center mt-8 font-lora">
               Tap anywhere for next quote
             </p>
           </div>
         ) : (
-          // Edit mode
-          <div className="max-w-2xl w-full space-y-4" onClick={(e) => e.stopPropagation()}>
+          // Edit mode - iOS optimized
+          <div 
+            className="max-w-2xl w-full space-y-5" 
+            onClick={(e) => e.stopPropagation()}
+          >
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Title (optional)</label>
+              <label className="block text-sm text-gray-400 mb-2 font-sans">Title (optional)</label>
               <input
                 type="text"
                 value={editForm.title}
                 onChange={(e) => setEditForm({...editForm, title: e.target.value})}
-                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none text-base"
+                className="w-full bg-gray-800 text-white px-4 py-4 rounded-xl border border-gray-700 focus:border-blue-500 focus:outline-none text-base font-sans"
                 placeholder="Quote title"
+                style={{ fontSize: '16px' }} // Prevents iOS zoom
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Author *</label>
+              <label className="block text-sm text-gray-400 mb-2 font-sans">Author *</label>
               <input
                 type="text"
                 value={editForm.author}
                 onChange={(e) => setEditForm({...editForm, author: e.target.value})}
-                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none text-base"
+                className="w-full bg-gray-800 text-white px-4 py-4 rounded-xl border border-gray-700 focus:border-blue-500 focus:outline-none text-base font-sans"
                 placeholder="Author name"
                 required
+                style={{ fontSize: '16px' }} // Prevents iOS zoom
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Tag (optional)</label>
+              <label className="block text-sm text-gray-400 mb-2 font-sans">Tag (optional)</label>
               <input
                 type="text"
                 value={editForm.tag}
                 onChange={(e) => setEditForm({...editForm, tag: e.target.value})}
-                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none text-base"
+                className="w-full bg-gray-800 text-white px-4 py-4 rounded-xl border border-gray-700 focus:border-blue-500 focus:outline-none text-base font-sans"
                 placeholder="e.g., motivation, wisdom"
+                style={{ fontSize: '16px' }} // Prevents iOS zoom
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Quote *</label>
+              <label className="block text-sm text-gray-400 mb-2 font-sans">Quote *</label>
               <textarea
                 value={editForm.quote}
                 onChange={(e) => setEditForm({...editForm, quote: e.target.value})}
-                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none text-base min-h-[200px]"
+                className="w-full bg-gray-800 text-white px-4 py-4 rounded-xl border border-gray-700 focus:border-blue-500 focus:outline-none text-base min-h-[200px] font-sans resize-none"
                 placeholder="Quote text"
                 required
+                style={{ fontSize: '16px' }} // Prevents iOS zoom
               />
             </div>
           </div>

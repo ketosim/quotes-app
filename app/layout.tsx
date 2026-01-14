@@ -23,6 +23,18 @@ const lora = Lora({
 export const metadata: Metadata = {
   title: "Quote Collection",
   description: "Personal quote collection and review app",
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: 'cover'
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Quote Collection'
+  }
 };
 
 export default function RootLayout({
