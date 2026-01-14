@@ -126,19 +126,19 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex flex-col">
-      {/* Action buttons - fixed at top, iPhone optimized */}
-      <div className="fixed top-0 left-0 right-0 z-10 flex justify-end gap-2 p-4 bg-gradient-to-b from-gray-900/80 to-transparent backdrop-blur-sm">
+      {/* Action buttons - fixed at top right corner */}
+      <div className="fixed top-4 right-4 z-10 flex gap-2">
         {!isEditing ? (
           <>
             <button
               onClick={handleEdit}
-              className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-5 py-3 rounded-lg text-base font-medium shadow-lg transition-all touch-manipulation"
+              className="bg-gray-800/90 hover:bg-gray-700 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg border border-gray-700 transition-all touch-manipulation"
             >
               Edit
             </button>
             <button
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white px-5 py-3 rounded-lg text-base font-medium shadow-lg transition-all touch-manipulation"
+              className="bg-gray-800/90 hover:bg-red-900/80 backdrop-blur-sm text-red-400 hover:text-red-300 px-4 py-2 rounded-full text-sm font-medium shadow-lg border border-gray-700 transition-all touch-manipulation"
             >
               Delete
             </button>
@@ -147,17 +147,16 @@ export default function Home() {
           <>
             <button
               onClick={handleSaveEdit}
-              className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white px-5 py-3 rounded-lg text-base font-medium shadow-lg transition-all touch-manipulation"
+              className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-full text-sm font-medium shadow-lg transition-all touch-manipulation"
             >
               Save
             </button>
             <button
               onClick={handleCancelEdit}
-              className="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white px-5 py-3 rounded-lg text-base font-medium shadow-lg transition-all touch-manipulation"
+              className="bg-gray-700 hover:bg-gray-600 text-white px-5 py-2 rounded-full text-sm font-medium shadow-lg transition-all touch-manipulation"
             >
               Cancel
             </button>
-            
           </>
         )}
       </div>
@@ -172,26 +171,29 @@ export default function Home() {
           // Display mode
           <div className="max-w-3xl w-full space-y-8">
             {currentQuote.title && (
-              <h2 className="text-lg md:text-xl text-gray-400 text-center font-light tracking-wide">
+              <h2 className="text-lg md:text-xl text-gray-400 text-center font-lora tracking-wide">
                 {currentQuote.title}
               </h2>
             )}
             
-            <blockquote className="font-playfair text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-relaxed text-center">
-              {currentQuote.quote}
+            <blockquote 
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-relaxed text-center text-gray-100"
+              style={{ fontFamily: 'Georgia, serif' }}
+            >
+                {currentQuote.quote}
             </blockquote>
 
-            <p className="text-xl md:text-2xl text-gray-300 text-center font-light">
+            <p className="text-xl md:text-2xl text-gray-300 text-center font-lora">
               — {currentQuote.author}
             </p>
             
             {currentQuote.tag && (
-              <p className="text-sm text-gray-500 text-center tracking-wider uppercase">
+              <p className="text-sm text-gray-500 text-center tracking-wider uppercase font-lora">
                 {currentQuote.tag}
               </p>
             )}
             
-            <p className="text-sm text-gray-600 text-center mt-12 font-light animate-pulse">
+            <p className="text-sm text-gray-600 text-center mt-12 font-lora animate-pulse">
               Tap anywhere for next quote
             </p>
           </div>
