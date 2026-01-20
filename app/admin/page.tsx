@@ -26,10 +26,8 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const [bulkText, setBulkText] = useState('');
-    const [showBulkUpload, setShowBulkUpload] = useState(false);
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
 
-
-  // Fetch all quotes
   const fetchQuotes = async () => {
     try {
       const response = await fetch('/api/quotes');
@@ -56,14 +54,12 @@ export default function AdminPage() {
     
     try {
       if (editingId) {
-        // Update existing quote
         await fetch(`/api/quotes/${editingId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
         });
       } else {
-        // Add new quote
         await fetch('/api/quotes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -71,10 +67,7 @@ export default function AdminPage() {
         });
       }
       
-      // Refresh quotes list
       await fetchQuotes();
-      
-      // Reset form
       setFormData({ title: '', author: '', tag: '', quote: '' });
       setIsAdding(false);
       setEditingId(null);
@@ -98,9 +91,7 @@ export default function AdminPage() {
     if (!confirm('Are you sure you want to delete this quote?')) return;
     
     try {
-      await fetch(`/api/quotes/${id}`, {
-        method: 'DELETE'
-      });
+      await fetch(`/api/quotes/${id}`, { method: 'DELETE' });
       await fetchQuotes();
     } catch (error) {
       console.error('Error deleting quote:', error);
@@ -113,80 +104,112 @@ export default function AdminPage() {
     setFormData({ title: '', author: '', tag: '', quote: '' });
   };
 
-  // Add to your existing state
+  const handleBulkUpload = async () => {
+    try {
+      const lines = bulkText.trim().split('\n');
+      const quotes = lines.map(line => {
+        const parts = line.split('","').map(p => p.replace(/"/g, ''));
+        
+        if (parts.length >= 2) {
+          return {
+            quote: parts[0],
+            author: parts[1],
+            title: parts[2] || '',
+            tag: parts[3] || ''
+          };
+        }
+        return null;
+      }).filter(q => q !== null);
 
-// Add this function
-const handleBulkUpload = async () => {
-  try {
-    // Parse CSV or JSON
-    const lines = bulkText.trim().split('\n');
-    const quotes = lines.map(line => {
-      // Support CSV format: "quote","author","title","tag"
-      const parts = line.split('","').map(p => p.replace(/"/g, ''));
+      const response = await fetch('/api/quotes/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quotes })
+      });
+
+      const result = await response.json();
+      alert(`Success! Added ${result.created} quotes. ${result.errors} errors.`);
       
-      if (parts.length >= 2) {
-        return {
-          quote: parts[0],
-          author: parts[1],
-          title: parts[2] || '',
-          tag: parts[3] || ''
-        };
+      if (result.created > 0) {
+        await fetchQuotes();
+        setBulkText('');
+        setShowBulkUpload(false);
       }
-      return null;
-    }).filter(q => q !== null);
-
-    const response = await fetch('/api/quotes/bulk', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ quotes })
-    });
-
-    const result = await response.json();
-    
-    alert(`Success! Added ${result.created} quotes. ${result.errors} errors.`);
-    
-    if (result.created > 0) {
-      await fetchQuotes();
-      setBulkText('');
-      setShowBulkUpload(false);
+    } catch (error) {
+      console.error('Bulk upload error:', error);
+      alert('Failed to upload quotes');
     }
-  } catch (error) {
-    console.error('Bulk upload error:', error);
-    alert('Failed to upload quotes');
-  }
-};
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <p className="text-xl">Loading...</p>
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(to bottom right, rgb(17, 24, 39), rgb(31, 41, 55), rgb(17, 24, 39))',
+        color: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <p style={{ fontSize: '1.25rem' }}>Loading...</p>
       </div>
     );
   }
-  
 
   return (
-    
-    <div className="min-h-screen bg-gray-900 text-white p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Manage Quotes</h1>
-          <div className="flex gap-3">
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(to bottom right, rgb(17, 24, 39), rgb(31, 41, 55), rgb(17, 24, 39))',
+      color: 'white',
+      padding: '1.5rem'
+    }}>
+      <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+          <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold' }}>Manage Quotes</h1>
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
             <button
               onClick={handleLogout}
-              className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
+              style={{
+                background: 'rgb(220, 38, 38)',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.375rem',
+                border: 'none',
+                color: 'white',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgb(185, 28, 28)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgb(220, 38, 38)'}
             >
               Logout
             </button>
-             <button
-                onClick={() => setShowBulkUpload(true)}
-                className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded"
-                >
-                Bulk Upload
-                </button>
+            <button
+              onClick={() => setShowBulkUpload(true)}
+              style={{
+                background: 'rgb(147, 51, 234)',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.375rem',
+                border: 'none',
+                color: 'white',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgb(126, 34, 206)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgb(147, 51, 234)'}
+            >
+              Bulk Upload
+            </button>
             <button
               onClick={() => setIsAdding(true)}
-              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
+              style={{
+                background: 'rgb(37, 99, 235)',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.375rem',
+                border: 'none',
+                color: 'white',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgb(29, 78, 216)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgb(37, 99, 235)'}
             >
               Add New Quote
             </button>
@@ -195,67 +218,119 @@ const handleBulkUpload = async () => {
 
         {/* Add/Edit Form */}
         {isAdding && (
-          <div className="bg-gray-800 p-6 rounded-lg mb-8">
-            <h2 className="text-xl mb-4">
+          <div style={{ background: 'rgb(31, 41, 55)', padding: '1.5rem', borderRadius: '0.5rem', marginBottom: '2rem' }}>
+            <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>
               {editingId ? 'Edit Quote' : 'Add New Quote'}
             </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm mb-2">Title (optional)</label>
+            <form onSubmit={handleSubmit}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Title (optional)</label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  className="w-full bg-gray-700 px-3 py-2 rounded text-white"
+                  style={{
+                    width: '100%',
+                    background: 'rgb(55, 65, 81)',
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '0.375rem',
+                    color: 'white',
+                    border: 'none',
+                    fontSize: '16px'
+                  }}
                   placeholder="e.g., On Passion"
                 />
               </div>
               
-              <div>
-                <label className="block text-sm mb-2">Author *</label>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Author *</label>
                 <input
                   type="text"
                   value={formData.author}
                   onChange={(e) => setFormData({...formData, author: e.target.value})}
-                  className="w-full bg-gray-700 px-3 py-2 rounded text-white"
+                  style={{
+                    width: '100%',
+                    background: 'rgb(55, 65, 81)',
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '0.375rem',
+                    color: 'white',
+                    border: 'none',
+                    fontSize: '16px'
+                  }}
                   placeholder="e.g., Steve Jobs"
                   required
                 />
               </div>
               
-              <div>
-                <label className="block text-sm mb-2">Tag (optional)</label>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Tag (optional)</label>
                 <input
                   type="text"
                   value={formData.tag}
                   onChange={(e) => setFormData({...formData, tag: e.target.value})}
-                  className="w-full bg-gray-700 px-3 py-2 rounded text-white"
+                  style={{
+                    width: '100%',
+                    background: 'rgb(55, 65, 81)',
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '0.375rem',
+                    color: 'white',
+                    border: 'none',
+                    fontSize: '16px'
+                  }}
                   placeholder="e.g., motivation, wisdom"
                 />
               </div>
               
-              <div>
-                <label className="block text-sm mb-2">Quote *</label>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Quote *</label>
                 <textarea
                   value={formData.quote}
                   onChange={(e) => setFormData({...formData, quote: e.target.value})}
-                  className="w-full bg-gray-700 px-3 py-2 rounded h-32 text-white"
+                  style={{
+                    width: '100%',
+                    background: 'rgb(55, 65, 81)',
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '0.375rem',
+                    height: '8rem',
+                    color: 'white',
+                    border: 'none',
+                    resize: 'vertical',
+                    fontSize: '16px'
+                  }}
                   placeholder="Enter the quote..."
                   required
                 />
               </div>
 
-              <div className="flex gap-3">
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
                 <button
                   type="submit"
-                  className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded"
+                  style={{
+                    background: 'rgb(22, 163, 74)',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '0.375rem',
+                    border: 'none',
+                    color: 'white',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgb(21, 128, 61)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgb(22, 163, 74)'}
                 >
                   {editingId ? 'Update' : 'Add'} Quote
                 </button>
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded"
+                  style={{
+                    background: 'rgb(75, 85, 99)',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '0.375rem',
+                    border: 'none',
+                    color: 'white',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgb(55, 65, 81)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgb(75, 85, 99)'}
                 >
                   Cancel
                 </button>
@@ -263,71 +338,116 @@ const handleBulkUpload = async () => {
             </form>
           </div>
         )}
+
         {/* Bulk Upload Form */}
         {showBulkUpload && (
-        <div className="bg-gray-800 p-6 rounded-lg mb-8">
-            <h2 className="text-xl mb-4">Bulk Upload Quotes</h2>
-            <p className="text-sm text-gray-400 mb-4">
-            Paste quotes in CSV format (one per line):<br/>
-            Format: "quote","author","title","tag"<br/>
-            Example: "To be or not to be","Shakespeare","Hamlet","philosophy"
+          <div style={{ background: 'rgb(31, 41, 55)', padding: '1.5rem', borderRadius: '0.5rem', marginBottom: '2rem' }}>
+            <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Bulk Upload Quotes</h2>
+            <p style={{ fontSize: '0.875rem', color: 'rgb(156, 163, 175)', marginBottom: '1rem' }}>
+              Paste quotes in CSV format (one per line):<br/>
+              Format: &quot;quote&quot;,&quot;author&quot;,&quot;title&quot;,&quot;tag&quot;<br/>
+              Example: &quot;To be or not to be&quot;,&quot;Shakespeare&quot;,&quot;Hamlet&quot;,&quot;philosophy&quot;
             </p>
             <textarea
-            value={bulkText}
-            onChange={(e) => setBulkText(e.target.value)}
-            className="w-full bg-gray-700 px-3 py-2 rounded h-64 text-white font-mono text-sm"
-            placeholder='"Quote text","Author","Title","Tag"
-        "Another quote","Another Author","Title","Tag"'
+              value={bulkText}
+              onChange={(e) => setBulkText(e.target.value)}
+              style={{
+                width: '100%',
+                background: 'rgb(55, 65, 81)',
+                padding: '0.5rem 0.75rem',
+                borderRadius: '0.375rem',
+                height: '16rem',
+                color: 'white',
+                fontFamily: 'monospace',
+                fontSize: '0.875rem',
+                border: 'none',
+                resize: 'vertical'
+              }}
+              placeholder={'"Quote text","Author","Title","Tag"\n"Another quote","Another Author","Title","Tag"'}
             />
-            <div className="flex gap-3 mt-4">
-            <button
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+              <button
                 onClick={handleBulkUpload}
-                className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded"
-            >
-                Upload Quotes
-            </button>
-            <button
-                onClick={() => {
-                setShowBulkUpload(false);
-                setBulkText('');
+                style={{
+                  background: 'rgb(22, 163, 74)',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.375rem',
+                  border: 'none',
+                  color: 'white',
+                  cursor: 'pointer'
                 }}
-                className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded"
-            >
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgb(21, 128, 61)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgb(22, 163, 74)'}
+              >
+                Upload Quotes
+              </button>
+              <button
+                onClick={() => {
+                  setShowBulkUpload(false);
+                  setBulkText('');
+                }}
+                style={{
+                  background: 'rgb(75, 85, 99)',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.375rem',
+                  border: 'none',
+                  color: 'white',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgb(55, 65, 81)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgb(75, 85, 99)'}
+              >
                 Cancel
-            </button>
+              </button>
             </div>
-        </div>
+          </div>
         )}
 
         {/* Quotes List */}
-        <div className="space-y-4">
-          <h2 className="text-xl mb-4">All Quotes ({quotes.length})</h2>
+        <div>
+          <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>All Quotes ({quotes.length})</h2>
           {quotes.map((quote) => (
-            <div key={quote.id} className="bg-gray-800 p-4 rounded-lg">
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex-1">
+            <div key={quote.id} style={{ background: 'rgb(31, 41, 55)', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
                   {quote.title && (
-                    <h3 className="text-lg font-semibold mb-1">{quote.title}</h3>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.25rem' }}>{quote.title}</h3>
                   )}
-                  <p className="text-gray-300 mb-2">{quote.quote}</p>
-                  <p className="text-sm text-gray-400">— {quote.author}</p>
+                  <p style={{ color: 'rgb(209, 213, 219)', marginBottom: '0.5rem' }}>{quote.quote}</p>
+                  <p style={{ fontSize: '0.875rem', color: 'rgb(156, 163, 175)' }}>— {quote.author}</p>
                   {quote.tag && (
-                    <p className="text-xs text-gray-500 mt-1">#{quote.tag}</p>
+                    <p style={{ fontSize: '0.75rem', color: 'rgb(107, 114, 128)', marginTop: '0.25rem' }}>#{quote.tag}</p>
                   )}
-                  <p className="text-xs text-gray-600 mt-2">
+                  <p style={{ fontSize: '0.75rem', color: 'rgb(75, 85, 99)', marginTop: '0.5rem' }}>
                     Shown {quote.timesShown} times | Last: {new Date(quote.lastShown).toLocaleDateString()}
                   </p>
                 </div>
-                <div className="flex gap-2 ml-4">
+                <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
                   <button
                     onClick={() => handleEdit(quote)}
-                    className="text-blue-400 hover:text-blue-300 text-sm"
+                    style={{
+                      color: 'rgb(96, 165, 250)',
+                      fontSize: '0.875rem',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = 'rgb(147, 197, 253)'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = 'rgb(96, 165, 250)'}
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(quote.id)}
-                    className="text-red-400 hover:text-red-300 text-sm"
+                    style={{
+                      color: 'rgb(248, 113, 113)',
+                      fontSize: '0.875rem',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = 'rgb(252, 165, 165)'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = 'rgb(248, 113, 113)'}
                   >
                     Delete
                   </button>
