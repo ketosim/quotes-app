@@ -13,23 +13,25 @@ export interface Quote {
 
 const QUOTES_KEY = 'quotes:all';
 
-// Helper to get quote key
 const quoteKey = (id: string) => `quote:${id}`;
 
-// Create Redis client
 const redis = createClient({
   url: process.env.REDIS_URL
 });
 
 redis.on('error', (err) => console.log('Redis Client Error', err));
 
-// Connect to Redis
-let isConnected = false;
+let connectionPromise: Promise<typeof redis> | null = null;
+
 async function ensureConnected() {
-  if (!isConnected) {
-    await redis.connect();
-    isConnected = true;
+  if (redis.isOpen) return;
+  if (!connectionPromise) {
+    connectionPromise = redis.connect().catch((err) => {
+      connectionPromise = null;
+      throw err;
+    });
   }
+  await connectionPromise;
 }
 
 export const store = {
@@ -37,14 +39,14 @@ export const store = {
     await ensureConnected();
     const quoteIds = await redis.sMembers(QUOTES_KEY);
     if (quoteIds.length === 0) return [];
-    
+
     const quotes = await Promise.all(
       quoteIds.map(async (id) => {
         const data = await redis.get(quoteKey(id));
         return data ? JSON.parse(data) : null;
       })
     );
-    
+
     return quotes.filter((q): q is Quote => q !== null);
   },
 
@@ -63,10 +65,10 @@ export const store = {
       timesShown: 0,
       createdAt: new Date().toISOString()
     };
-    
+
     await redis.set(quoteKey(newQuote.id), JSON.stringify(newQuote));
     await redis.sAdd(QUOTES_KEY, newQuote.id);
-    
+
     return newQuote;
   },
 
@@ -74,11 +76,11 @@ export const store = {
     await ensureConnected();
     const existingData = await redis.get(quoteKey(id));
     if (!existingData) return null;
-    
+
     const existing = JSON.parse(existingData);
     const updated = { ...existing, ...data };
     await redis.set(quoteKey(id), JSON.stringify(updated));
-    
+
     return updated;
   },
 
@@ -86,10 +88,10 @@ export const store = {
     await ensureConnected();
     const exists = await redis.exists(quoteKey(id));
     if (!exists) return false;
-    
+
     await redis.del(quoteKey(id));
     await redis.sRem(QUOTES_KEY, id);
-    
+
     return true;
   },
 
@@ -97,13 +99,13 @@ export const store = {
     await ensureConnected();
     const data = await redis.get(quoteKey(id));
     if (!data) return null;
-    
+
     const quote = JSON.parse(data);
     quote.lastShown = new Date().toISOString();
     quote.timesShown += 1;
-    
+
     await redis.set(quoteKey(id), JSON.stringify(quote));
-    
+
     return quote;
   }
 };
